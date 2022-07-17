@@ -1,12 +1,12 @@
 use crate::db;
 use crate::error_handler::CustomError;
 use crate::schema::employees;
-use disel::prelude::*;
-use serde::{Serialize,Deserialize};
+use diesel::prelude::*;
+use serde::{Deserialize, Serialize};
 
-#[derive(Serialize,Deserialize,AsChangeset,Insertable)]
-#[table_name="employees"]
-pub struct Employee{
+#[derive(Serialize, Deserialize, AsChangeset, Insertable)]
+#[table_name = "employees"]
+pub struct Employee {
     pub first_name: String,
     pub last_name: String,
     pub department: String,
@@ -14,8 +14,9 @@ pub struct Employee{
     pub age:i32,
 }
 
-#[derive(Serialize,Deserialize,AsChangeset,Insertable)]
-pub struct Employees{
+#[derive(Serialize, Deserialize, Queryable)]
+pub struct Employees {
+    pub id: i32,
     pub first_name: String,
     pub last_name: String,
     pub department: String,
@@ -24,7 +25,7 @@ pub struct Employees{
 }
 
 impl Employees{
-    pub fn find_all()->Rsult<Vec<Self>,CustomError>{
+    pub fn find_all()->Result<Vec<Self>,CustomError>{
         let conn=db::connection()?;
         let employees = employees::table.load::<Employees>(&conn)?;
         Ok(employees)
@@ -32,28 +33,33 @@ impl Employees{
 
     pub fn find(id:i32)->Result<Self,CustomError>{
         let conn=db::connection()?;
-        let employee = employees::table.filter(employees::id.eq(id)).first(&conn)?;
+        let employee = employees::table
+            .filter(employees::id.eq(id))
+            .first(&conn)?;
         Ok(employee)
     }
 
     pub fn create(employee:Employee)->Result<Self,CustomError>{
         let conn=db::connection()?;
         let employee = Employee::from(employee);
-        let employee = diesel::insert_into(employee::table)
-            .values(employee).get_result(&conn)?;
+        let employee = diesel::insert_into(employees::table)
+            .values(employee)
+            .get_result(&conn)?;
         Ok(employee)
     }
 
     pub fn update(id:i32,employee:Employee)->Result<Self,CustomError>{
         let conn=db::connection()?;
-        let employee = diesel::update(employee::table)
-            .filter(employees::id.eq(id)).set(employee).get_result(&conn)?;
+        let employee = diesel::update(employees::table)
+            .filter(employees::id.eq(id))
+            .set(employee)
+            .get_result(&conn)?;
         Ok(employee)
     }
 
     pub fn delete(id:i32)->Result<usize,CustomError>{
         let conn=db::connection()?;
-        let res = diesel::delete(employee::table.filter(employees::id.eq(id)))
+        let res = diesel::delete(employees::table.filter(employees::id.eq(id)))
             .execute(&conn)?;
         Ok(res)
     }
