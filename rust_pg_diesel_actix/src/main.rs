@@ -16,7 +16,7 @@ mod db;
 mod employees;
 
 #[actix_rt::main]
-fn main() ->std::io::Result<()>{
+async fn main() ->std::io::Result<()>{
     dotenv().ok();
     db::init();
 
@@ -28,6 +28,7 @@ fn main() ->std::io::Result<()>{
         None=>{
             let host=env::var("HOST").expect("HOST有误");
             let port=env::var("PORT").expect("PORT有误");
+            println!("启动在{}:{}",host,port);
             server.bind(format!("{}:{}",host,port))?
         }
     };
