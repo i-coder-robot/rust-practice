@@ -1,11 +1,10 @@
-use std::any::TypeId;
 use std::fmt;
 use std::fmt::Formatter;
 use actix_web::http::StatusCode;
 use actix_web::{HttpResponse,ResponseError};
-use actix_web::error::PrivateHelper;
 use diesel::result::Error as DieselError;
 use serde_json::json;
+use serde::Deserialize;
 
 
 
@@ -36,7 +35,7 @@ impl From<DieselError> for CustomError {
             DieselError::DatabaseError(_, err) => CustomError::new(
                 409, err.message().to_string()),
             DieselError::NotFound => {
-                CustomError(404, "雇员记录没有找到".to_string())
+                CustomError::new(404, "雇员记录没有找到".to_string())
             }
             err=>CustomError::new(500,
             format!("未知的Diesel错误:{}",err))
@@ -56,6 +55,6 @@ impl ResponseError for CustomError{
             false=>"服务器内部错误".to_string(),
         };
 
-        HttpResponse::build(status_code).json(json!({"message":error_messsage}))
+        HttpResponse::build(status_code).json(json!({"message":error_message}))
     }
 }
